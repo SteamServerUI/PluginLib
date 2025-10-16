@@ -1,5 +1,5 @@
 {
-    "name": "SSUIPluginSkeleton",
+    "name": "PluginLib",
     "build": {
         "dockerfile": "Dockerfile",
         "args": {
