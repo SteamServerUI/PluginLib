@@ -1,4 +1,4 @@
-module github.com/SteamServerUI/PluginSkeleton
+module github.com/SteamServerUI/PluginLib
 
 go 1.25.0
 
