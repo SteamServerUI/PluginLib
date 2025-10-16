@@ -1,7 +1,7 @@
 //go:build windows
 // +build windows
 
-package plugininterface
+package PluginLib
 
 import (
 	"bytes"
