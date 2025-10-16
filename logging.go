@@ -1,6 +1,9 @@
 package PluginLib
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+)
 
 type LogResponse struct {
 	Status string `json:"status"`
@@ -14,7 +17,7 @@ type LogRequest struct {
 
 func Log(message string, level ...string) error {
 	if !configInitialized {
-		return fmt.Errorf("plugin configuration not initialized; call InitConfig first")
+		log.Fatal("plugin configuration not initialized; call InitConfig first")
 	}
 
 	fmt.Println("Sending a log line to the server...")
