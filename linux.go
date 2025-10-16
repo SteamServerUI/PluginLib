@@ -1,7 +1,7 @@
 //go:build linux
 // +build linux
 
-package plugininterface
+package PluginLib
 
 import (
 	"bytes"
