@@ -20,7 +20,7 @@ func Log(message string, level ...string) error {
 		log.Fatal("plugin configuration not initialized; call InitConfig first")
 	}
 
-	fmt.Println("Sending a log line to the server...")
+	//fmt.Println("Sending a log line to the server...")
 
 	usedLevel := config.DefaultLevel
 
@@ -45,6 +45,5 @@ func Log(message string, level ...string) error {
 		return fmt.Errorf("failed to log a line: %v", err)
 	}
 
-	fmt.Printf("Log sent successfully: %s\n", logResponse.Status)
 	return nil
 }
