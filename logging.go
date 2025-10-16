@@ -44,6 +44,6 @@ func Log(message string, level ...string) error {
 	if err != nil {
 		return fmt.Errorf("failed to log a line: %v", err)
 	}
-
+	fmt.Printf("[PluginLib]: Logged: %s\n", message)
 	return nil
 }
