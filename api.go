@@ -13,6 +13,8 @@ var (
 )
 
 func ExposeAPI(wg *sync.WaitGroup) {
+	wg.Add(1)
+	defer wg.Done()
 
 	if !configInitialized {
 		log.Fatal("plugin configuration not initialized; call InitConfig first")
