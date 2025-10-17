@@ -16,7 +16,7 @@ func ExposeAPI(wg *sync.WaitGroup) {
 
 	pluginSocketPath := "/tmp/ssui/" + config.PluginName + ".sock"
 
-	if err := os.RemoveAll(socketPath); err != nil {
+	if err := os.RemoveAll(pluginSocketPath); err != nil {
 		Log("Error removing existing socket: " + err.Error())
 	}
 
