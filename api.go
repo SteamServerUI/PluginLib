@@ -50,7 +50,7 @@ func ExposeAPI(wg *sync.WaitGroup) {
 
 }
 
-func RegisterRoute(method, path string, handler http.HandlerFunc) {
+func RegisterRoute(path string, handler http.HandlerFunc) {
 	pluginMux.HandleFunc(path, handler)
-	Log("Registered route: "+method+" "+path, "Debug")
+	Log("Registered route: "+path, "Debug")
 }
