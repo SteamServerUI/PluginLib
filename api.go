@@ -5,15 +5,20 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"sync"
 )
 
-func ExposeAPI() {
+func ExposeAPI(wg *sync.WaitGroup) {
 
 	if !configInitialized {
 		log.Fatal("plugin configuration not initialized; call InitConfig first")
 	}
 
 	pluginSocketPath := "/tmp/ssui/" + config.PluginName + ".sock"
+
+	if err := os.RemoveAll(socketPath); err != nil {
+		Log("Error removing existing socket: " + err.Error())
+	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", serveIndex)
@@ -35,12 +40,12 @@ func ExposeAPI() {
 	}
 
 	// Start server in a goroutine
-	go func() {
+	wg.Go(func() {
 		Log("Unix socket server running at " + pluginSocketPath)
 		if err := server.Serve(listener); err != nil && err != http.ErrServerClosed {
 			Log("Unix socket server error: " + err.Error())
 		}
-	}()
+	})
 
 }
 
