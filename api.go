@@ -8,6 +8,10 @@ import (
 	"sync"
 )
 
+var (
+	pluginMux = http.NewServeMux()
+)
+
 func ExposeAPI(wg *sync.WaitGroup) {
 
 	if !configInitialized {
@@ -19,9 +23,6 @@ func ExposeAPI(wg *sync.WaitGroup) {
 	if err := os.RemoveAll(pluginSocketPath); err != nil {
 		Log("Error removing existing socket: " + err.Error())
 	}
-
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", serveIndex)
 
 	listener, err := net.Listen("unix", pluginSocketPath)
 	if err != nil {
@@ -36,7 +37,7 @@ func ExposeAPI(wg *sync.WaitGroup) {
 
 	// Create an HTTP server
 	server := &http.Server{
-		Handler: mux,
+		Handler: pluginMux,
 	}
 
 	// Start server in a goroutine
@@ -49,6 +50,7 @@ func ExposeAPI(wg *sync.WaitGroup) {
 
 }
 
-func serveIndex(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello, world!"))
+func RegisterRoute(method, path string, handler http.HandlerFunc) {
+	pluginMux.HandleFunc(path, handler)
+	Log("Registered route: "+method+" "+path, "Debug")
 }
