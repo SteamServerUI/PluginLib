@@ -34,10 +34,6 @@ func Get(endpoint string, response any) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status code: %d %s", resp.StatusCode, resp.Status)
-	}
-
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("failed to read response body: %w", err)
@@ -73,10 +69,6 @@ func Post(endpoint string, payload any, response any) error {
 		return fmt.Errorf("failed to send POST request to %s: %w", endpoint, err)
 	}
 	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status code: %s", resp.Status)
-	}
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
