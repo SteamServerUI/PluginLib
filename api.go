@@ -76,6 +76,6 @@ func RegisterPluginAPI() {
 	var registerResponse RegisterResponse
 	err := Post("/api/v2/plugins/register", RegisterRequest{PluginName: config.PluginName}, &registerResponse)
 	if err != nil {
-		Log("Failed to register plugin: "+err.Error(), "Error")
+		Log("Failed to register plugin: "+registerResponse.Message, "Error")
 	}
 }
