@@ -12,7 +12,7 @@ func GetSetting(name string) (any, error) {
 	}
 
 	var settings map[string][]map[string]any
-	err := Get("/api/v2/settings", &settings)
+	_, err := Get("/api/v2/settings", &settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get settings: %v", err)
 	}
@@ -34,7 +34,7 @@ func GetSetting(name string) (any, error) {
 }
 
 func GetAllSettings() (settings map[string][]map[string]any) {
-	err := Get("/api/v2/settings", &settings)
+	_, err := Get("/api/v2/settings", &settings)
 	if err != nil {
 		log.Fatalf("Failed to get settings: %v", err)
 	}

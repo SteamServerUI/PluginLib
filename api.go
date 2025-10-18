@@ -72,10 +72,15 @@ func RegisterPluginAPI() {
 		log.Fatal("plugin configuration not initialized; call InitConfig first")
 	}
 
-	// send a post to /api/v2/plugins/register
+	// Send a POST to /api/v2/plugins/register
 	var registerResponse RegisterResponse
-	err := Post("/api/v2/plugins/register", RegisterRequest{PluginName: config.PluginName}, &registerResponse)
+	_, err := Post("/api/v2/plugins/register", RegisterRequest{PluginName: config.PluginName}, &registerResponse)
 	if err != nil {
-		Log("Failed to register plugin: "+err.Error(), "Error")
+		Log("Failed to register pluginAPI: "+err.Error(), "Error")
+		return
+	}
+	if registerResponse.Status != "success" {
+		Log("Failed to register pluginAPI: "+registerResponse.Message, "Error")
+		return
 	}
 }

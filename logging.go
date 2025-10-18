@@ -40,9 +40,12 @@ func Log(message string, level ...string) error {
 	}
 
 	var logResponse LogResponse
-	err := Post("/api/v2/plugins/log", payload, &logResponse)
+	_, err := Post("/api/v2/plugins/log", payload, &logResponse)
 	if err != nil {
 		return fmt.Errorf("failed to log a line: %v", err)
+	}
+	if logResponse.Status != "success" {
+		return fmt.Errorf("failed to log a line: %s", message)
 	}
 	fmt.Printf("[PluginLib]: Logged: %s\n", message)
 	return nil
