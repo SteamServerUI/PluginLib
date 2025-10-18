@@ -34,7 +34,8 @@ func Get(endpoint string, response any) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	err = checkStatusCode(resp.StatusCode)
+	if err != nil {
 		return fmt.Errorf("unexpected status code: %d %s", resp.StatusCode, resp.Status)
 	}
 
@@ -74,8 +75,9 @@ func Post(endpoint string, payload any, response any) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status code: %s", resp.Status)
+	err = checkStatusCode(resp.StatusCode)
+	if err != nil {
+		return fmt.Errorf("unexpected status code: %d %s", resp.StatusCode, resp.Status)
 	}
 
 	respBody, err := io.ReadAll(resp.Body)
@@ -87,6 +89,23 @@ func Post(endpoint string, payload any, response any) error {
 		if err := json.Unmarshal(respBody, response); err != nil {
 			return fmt.Errorf("failed to unmarshal JSON response: %w", err)
 		}
+	}
+	return nil
+}
+
+func checkStatusCode(status int) error {
+
+	validCodes := map[int]bool{
+		http.StatusOK:             true,
+		http.StatusCreated:        true,
+		http.StatusAccepted:       true,
+		http.StatusNoContent:      true,
+		http.StatusBadRequest:     true,
+		http.StatusNotImplemented: true,
+	}
+
+	if !validCodes[status] {
+		return fmt.Errorf("unexpected status code: %d", status)
 	}
 	return nil
 }
