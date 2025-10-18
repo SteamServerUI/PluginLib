@@ -33,7 +33,7 @@ func ExposeAPI(wg *sync.WaitGroup) {
 	}
 
 	// Set socket permissions
-	if err := os.Chmod(pluginSocketPath, 0666); err != nil {
+	if err := os.Chmod(pluginSocketPath, 0600); err != nil {
 		Log("Error setting socket permissions: " + err.Error())
 	}
 
