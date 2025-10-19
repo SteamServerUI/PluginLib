@@ -16,7 +16,6 @@ func GetServerStatus() (ServerStatusResponse, error) {
 }
 
 func GetSingleArgFromRunfile(flag string) (string, error) {
-	// Create LogRequest struct internally
 	payload := ArgsRequest{
 		Flag: flag,
 	}
@@ -26,7 +25,7 @@ func GetSingleArgFromRunfile(flag string) (string, error) {
 		return "", fmt.Errorf("failed to get arg from runfile api: %v", err)
 	}
 	if getArgResponse.Status != "success" {
-		return "", fmt.Errorf("failed to log a line: %s", getArgResponse.Error)
+		return "", fmt.Errorf("failed to get arg from runfile api: %s", getArgResponse.Error)
 	}
 	return getArgResponse.Value, nil
 
