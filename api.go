@@ -29,7 +29,7 @@ func ExposeAPI(wg *sync.WaitGroup) {
 		log.Fatal("plugin configuration not initialized; call InitConfig first")
 	}
 
-	pluginSocketPath := "/tmp/ssui/" + config.PluginName + ".sock"
+	pluginSocketPath := "./SSUI/plugins/sockets/" + config.PluginName + ".sock"
 
 	if err := os.RemoveAll(pluginSocketPath); err != nil {
 		Log("Error removing existing socket: " + err.Error())
