@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-const socketPath = "/tmp/ssui/ssui.sock"
+const socketPath = "./SSUI/plugins/sockets/ssui.sock"
 
 // Get sends a GET request to the specified SSUI endpoint and unmarshals the JSON response into the provided response interface.
 func Get(endpoint string, response any) (any, error) {
