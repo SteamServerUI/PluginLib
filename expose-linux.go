@@ -12,8 +12,6 @@ import (
 )
 
 func ExposeAPI(wg *sync.WaitGroup) {
-	wg.Add(1)
-	defer wg.Done()
 
 	if !configInitialized {
 		log.Fatal("plugin configuration not initialized; call InitConfig first")
@@ -42,7 +40,9 @@ func ExposeAPI(wg *sync.WaitGroup) {
 	}
 
 	// Start server in a goroutine
+	wg.Add(1)
 	wg.Go(func() {
+		defer wg.Done()
 		Log("Unix socket server running at " + pluginSocketPath)
 		if err := server.Serve(listener); err != nil && err != http.ErrServerClosed {
 			Log("Unix socket server error: " + err.Error())
