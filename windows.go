@@ -4,88 +4,110 @@
 package PluginLib
 
 import (
+	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
+	"net/http"
+	"os"
 	"time"
 
 	"github.com/Microsoft/go-winio"
 )
 
-const pipeName = `\\.\pipe\ssui`
+var SSUIPipePath string
+
+func getSSUIPipePath() string {
+	if SSUIPipePath != "" {
+		return SSUIPipePath
+	}
+	// check the ./SSUI/plugins/sockets/pipename.identifier file for the pipe name. It will only contain the name, nothing else.
+	SSUIPipePathFile, err := os.Open("./SSUI/plugins/sockets/pipename.identifier")
+	if err != nil {
+		fmt.Println("Error opening pipename.identifier file, I have to go...:", err)
+		os.Exit(1)
+	}
+	defer SSUIPipePathFile.Close()
+
+	scanner := bufio.NewScanner(SSUIPipePathFile)
+	for scanner.Scan() {
+		SSUIPipePath = scanner.Text()
+	}
+	if SSUIPipePath == "" {
+		fmt.Println("Error reading pipename.identifier file, I have to go...:", err)
+		os.Exit(1)
+	}
+	return SSUIPipePath + `\ssui`
+}
 
 // Get sends a GET request to the specified SSUI endpoint and unmarshals the JSON response into the provided response interface.
-func Get(endpoint string, response any) error {
-	timeout := 5 * time.Second
-	return sendRequest("GET", endpoint, nil, response, &timeout)
+func Get(endpoint string, response any) (any, error) {
+	pipeName := getSSUIPipePath()
+	transport := &http.Transport{
+		DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
+			return winio.DialPipe(pipeName, nil)
+		},
+	}
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   10 * time.Second,
+	}
+
+	resp, err := client.Get("http://localhost" + endpoint)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send GET request to %s: %w", endpoint, err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	if response != nil {
+		if err := json.Unmarshal(body, response); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal JSON response: %w", err)
+		}
+	}
+	return response, nil
 }
 
 // Post sends a POST request to the specified SSUI endpoint with the given payload and unmarshals the JSON response.
-func Post(endpoint string, payload any, response any) error {
+func Post(endpoint string, payload any, response any) (any, error) {
+	pipeName := getSSUIPipePath()
+	transport := &http.Transport{
+		DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
+			return winio.DialPipe(pipeName, nil)
+		},
+	}
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   10 * time.Second,
+	}
+
 	body, err := json.Marshal(payload)
 	if err != nil {
-		return fmt.Errorf("failed to marshal payload: %w", err)
+		return nil, fmt.Errorf("failed to marshal payload: %w", err)
 	}
-	timeout := 5 * time.Second
-	return sendRequest("POST", endpoint, body, response, &timeout)
-}
 
-// sendRequest sends an HTTP request to the named pipe and parses the response.
-func sendRequest(method, endpoint string, body []byte, response any, timeout *time.Duration) error {
-	// Connect to the named pipe
-	pipe, err := winio.DialPipe(pipeName, timeout)
+	resp, err := client.Post("http://localhost"+endpoint, "application/json", bytes.NewReader(body))
 	if err != nil {
-		return fmt.Errorf("failed to connect to named pipe %s: %w", pipeName, err)
+		return nil, fmt.Errorf("failed to send POST request to %s: %w", endpoint, err)
 	}
-	defer pipe.Close()
+	defer resp.Body.Close()
 
-	// Construct HTTP request
-	host := "localhost"
-	request := fmt.Sprintf("%s %s HTTP/1.1\r\nHost: %s\r\n", method, endpoint, host)
-	if body != nil {
-		request += "Content-Type: application/json\r\n"
-		request += fmt.Sprintf("Content-Length: %d\r\n", len(body))
-	}
-	request += "Connection: close\r\n\r\n"
-	if body != nil {
-		request += string(body)
-	}
-
-	// Send request
-	_, err = pipe.Write([]byte(request))
+	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("failed to write to named pipe: %w", err)
-	}
-
-	// Read response
-	respBytes, err := io.ReadAll(pipe)
-	if err != nil {
-		return fmt.Errorf("failed to read response from named pipe: %w", err)
-	}
-
-	// Parse HTTP response (simplified, assumes valid HTTP response)
-	respStr := string(respBytes)
-	headerEnd := bytes.Index([]byte(respStr), []byte("\r\n\r\n"))
-	if headerEnd == -1 {
-		return fmt.Errorf("invalid HTTP response: no header-body separator")
-	}
-	bodyStart := headerEnd + 4
-	respBody := respBytes[bodyStart:]
-
-	// Check status code (simplified, assumes first line is status)
-	lines := bytes.SplitN(respBytes, []byte("\r\n"), 2)
-	if len(lines) < 1 {
-		return fmt.Errorf("invalid HTTP response: no status line")
-	}
-	if !bytes.Contains(lines[0], []byte("200 OK")) {
-		return fmt.Errorf("unexpected status: %s", lines[0])
+		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	if response != nil {
 		if err := json.Unmarshal(respBody, response); err != nil {
-			return fmt.Errorf("failed to unmarshal JSON response: %w", err)
+			return nil, fmt.Errorf("failed to unmarshal JSON response: %w", err)
 		}
 	}
-	return nil
+	return response, nil
 }
