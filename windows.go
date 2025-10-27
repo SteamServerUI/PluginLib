@@ -40,7 +40,7 @@ func getSSUIPipePath() string {
 		fmt.Println("Error reading pipename.identifier file, I have to go...:", err)
 		os.Exit(1)
 	}
-	return SSUIPipePath + `\ssui`
+	return SSUIPipePath + "ssui"
 }
 
 // Get sends a GET request to the specified SSUI endpoint and unmarshals the JSON response into the provided response interface.
