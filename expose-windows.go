@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/Microsoft/go-winio"
 )
@@ -18,9 +19,9 @@ var PluginPipePath string
 
 func getPluginPipePath() string {
 	if PluginPipePath != "" {
-		return PluginPipePath
+		fmt.Println("Using cached PluginPipePath:", PluginPipePath) // Debug
+		return PluginPipePath + config.PluginName
 	}
-	// check the ./SSUI/plugins/sockets/pipename.identifier file for the pipe name. It will only contain the name, nothing else.
 	PluginPipePathFile, err := os.Open("./SSUI/plugins/sockets/pipename.identifier")
 	if err != nil {
 		fmt.Println("Error opening pipename.identifier file, I have to go...:", err)
@@ -31,13 +32,15 @@ func getPluginPipePath() string {
 	scanner := bufio.NewScanner(PluginPipePathFile)
 	for scanner.Scan() {
 		PluginPipePath = scanner.Text()
+		fmt.Println("Read PluginPipePath:", PluginPipePath) // Debug
 	}
 	if PluginPipePath == "" {
 		fmt.Println("Error reading pipename.identifier file, I have to go...:", err)
 		os.Exit(1)
 	}
-	//returns something like \\.\pipe\ssui-1234567890\
-	return PluginPipePath + config.PluginName
+	pipePath := PluginPipePath + config.PluginName
+	fmt.Println("Final plugin pipe path:", pipePath) // Debug
+	return pipePath
 }
 
 func ExposeAPI(wg *sync.WaitGroup) {
@@ -76,8 +79,8 @@ func ExposeAPI(wg *sync.WaitGroup) {
 		if err := server.Serve(listener); err != nil && err != http.ErrServerClosed {
 			Log("Named pipe server error: " + err.Error())
 		}
+		listener.Close()
 	}()
 
-	// Ensure listener is closed when the function exits
-	defer listener.Close()
+	time.Sleep(100 * time.Millisecond)
 }
