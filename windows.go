@@ -18,29 +18,31 @@ import (
 	"github.com/Microsoft/go-winio"
 )
 
-var SSUIPipePath string
+var sSUIPipePath string
 
 func getSSUIPipePath() string {
-	if SSUIPipePath != "" {
-		return SSUIPipePath
+	if sSUIPipePath != "" {
+		return sSUIPipePath
 	}
 	// check the ./SSUI/plugins/sockets/pipename.identifier file for the pipe name. It will only contain the name, nothing else.
-	SSUIPipePathFile, err := os.Open("./SSUI/plugins/sockets/pipename.identifier")
+	sSUIPipePathFile, err := os.Open("./SSUI/plugins/sockets/pipename.identifier")
 	if err != nil {
 		fmt.Println("Error opening pipename.identifier file, I have to go...:", err)
 		os.Exit(1)
 	}
-	defer SSUIPipePathFile.Close()
+	defer sSUIPipePathFile.Close()
 
-	scanner := bufio.NewScanner(SSUIPipePathFile)
+	scanner := bufio.NewScanner(sSUIPipePathFile)
 	for scanner.Scan() {
-		SSUIPipePath = scanner.Text()
+		sSUIPipePath = scanner.Text()
 	}
-	if SSUIPipePath == "" {
+	if sSUIPipePath == "" {
 		fmt.Println("Error reading pipename.identifier file, I have to go...:", err)
 		os.Exit(1)
 	}
-	return SSUIPipePath + "ssui"
+	sSUIPipePath = sSUIPipePath + "ssui"
+	fmt.Println("SSUIPipePath:", sSUIPipePath)
+	return sSUIPipePath
 }
 
 // Get sends a GET request to the specified SSUI endpoint and unmarshals the JSON response into the provided response interface.
